@@ -58,7 +58,6 @@ function ParamsPage() {
 
 function App() {
 	return <DOMRouter>
-		<h1>Renders</h1>
 		<Route path="/">
 			<SamplePage/>
 		</Route>
