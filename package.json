@@ -16,7 +16,7 @@
 	"author": "Marcus Rognes <marcus@rognes.guru>",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/marcusrognes/react-pragmatic-router"
+		"url": "git+https://github.com/marcusrognes/react-pragmatic-router.git"
 	},
 	"license": "ISC",
 	"dependencies": {
