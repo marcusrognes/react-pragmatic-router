@@ -14,6 +14,10 @@
 		"dev": "webpack serve --mode development --config ./examples/simple/webpack.config.js"
 	},
 	"author": "Marcus Rognes <marcus@rognes.guru>",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/marcusrognes/react-pragmatic-router"
+	},
 	"license": "ISC",
 	"dependencies": {
 		"react": "^18.2.0",
