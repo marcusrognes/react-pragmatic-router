@@ -4,7 +4,7 @@ import {Router} from "./Router";
 const LOCATION_CHANGE_EVENT = "popstate";
 
 export function DOMRouter(props: { children: ReactNode }) {
-	const [path, setPath] = useState("/");
+	const [path, setPath] = useState(window.location.pathname);
 
 	useEffect(() => {
 		function handlePop() {
