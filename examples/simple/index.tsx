@@ -24,9 +24,9 @@ function SamplePage() {
 function SecondPage() {
 	return <div>
 		<h1>
-			Second page
+			Second page (relative addative href)
 		</h1>
-		<Link href="/second/third">
+		<Link href="third">
 			Third page
 		</Link>
 	</div>

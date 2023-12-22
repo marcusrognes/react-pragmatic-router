@@ -13,6 +13,7 @@ export function Link({
 	                     children,
 	                     ...props
                      }: DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>) {
+	const router = useRouter();
 	const navigate = useNavigate();
 
 	return <a {...props} onClick={(e) => {
@@ -23,7 +24,13 @@ export function Link({
 		}
 
 		e.preventDefault();
-		navigate(props.href || "/");
+
+		if(props.href?.startsWith("/")){
+			navigate(props.href);
+		}else{
+			navigate(router.path + "/" + props.href);
+		}
+
 	}}>
 		{children}
 	</a>
