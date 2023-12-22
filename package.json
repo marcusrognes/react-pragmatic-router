@@ -9,7 +9,6 @@
 	"types": "dist/index.d.ts",
 	"scripts": {
 		"build": "tsc",
-		"publish": "npm publish --access public",
 		"format": "prettier --write .",
 		"dev": "webpack serve --mode development --config ./examples/simple/webpack.config.js"
 	},
