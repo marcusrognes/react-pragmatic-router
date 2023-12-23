@@ -1,13 +1,11 @@
 import { AnchorHTMLAttributes, DetailedHTMLProps } from 'react';
-import { setLocation, useLocation, useNavigate, useRouter } from './Router';
-
+import { useRouter } from './Router';
 
 export function Link({
 	                     children,
 	                     ...props
                      }: DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>) {
-	const location = useLocation();
-	const navigate = useNavigate();
+	const {location, setLocation} = useRouter();
 
 	return <a {...props} onClick={(e) => {
 		props.onClick?.(e);
@@ -19,9 +17,9 @@ export function Link({
 		e.preventDefault();
 
 		if (props.href?.startsWith('/')) {
-			navigate(props.href);
+			setLocation(props.href);
 		} else {
-			navigate(location + '/' + props.href);
+			setLocation(location + '/' + props.href);
 		}
 	}}>
 		{children}

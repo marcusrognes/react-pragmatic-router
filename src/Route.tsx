@@ -1,33 +1,29 @@
-import { useLocation } from './Router';
-import { createContext, ReactNode, useContext, useMemo } from 'react';
+import { ReactNode, useMemo } from 'react';
+import { useRouter } from './Router';
 import { patterMatcher } from './utils';
 
 
-export function useMatcher(pattern: string, exact?: boolean) {
-	const location = useLocation();
-
-	return patterMatcher(pattern, location, exact);
-}
-
 export type ParamsType = { [param: string]: string };
 
-const RouteContext = createContext<{ pattern: string }>({ pattern: "" });
+export function Route(props: {
+	pattern: string,
+	exact?: boolean,
+	element?: ({ params }: { params: ParamsType }) => ReactNode,
+	render?: (renderProps: { matches: boolean, params: ParamsType }) => ReactNode
+}) {
+	const { location } = useRouter();
 
-export function useRoute<T extends ParamsType>() {
-	return useContext(RouteContext);
-}
-
-export function Route(props: { pattern: string, exact?: boolean, children: ReactNode }) {
-	const matcher = useMatcher(props.pattern, props.exact);
-	if (!matcher) return null;
-
-	return <RouteContext.Provider value={{ pattern: props.pattern }}>{props.children}</RouteContext.Provider>;
-}
+	const matches = patterMatcher(props.pattern, location, props.exact);
 
 
-export function useParams<T>(){
-	const route = useRoute();
-	const match = useMatcher(route.pattern);
+	return useMemo(() => {
+		if (props.element) {
+			if (!matches) return null;
+			return props.element({ params: matches.groups || {} });
+		}
 
-	return (match?.groups ?? {}) as T;
+		if (!props.render) throw new Error('element or render is required');
+
+		return props.render({ matches: !!matches, params: matches?.groups || {} });
+	}, [JSON.stringify(matches?.groups || {}), !!matches]);
 }

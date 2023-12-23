@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 
-import { Route, useParams } from '../../src/Route';
+import { Route } from '../../src/Route';
 import { DOMRouter } from '../../src/DOMRouter';
 import { Link } from '../../src/Link';
 
@@ -45,13 +45,11 @@ function ThirdPage() {
 	</div>;
 }
 
-function ParamsPage() {
-	const params = useParams<{ someId: string }>();
-
-	console.log('ParamsPage', params);
+function ParamsPage({ someId }: { someId: string }) {
+	console.log('ParamsPage', someId);
 	return <div>
 		<h1>
-			Params page {params.someId}
+			Params page {someId}
 		</h1>
 		<Link href="/data/123/more/1">
 			Deeper params
@@ -62,16 +60,14 @@ function ParamsPage() {
 	</div>;
 }
 
-function NestedParamsPage() {
-	const params = useParams<{ someId: string, someOtherId: string }>();
-
+function NestedParamsPage({ someId, someOtherId }: { someId: string, someOtherId: string }) {
 	console.log('Deeper ParamsPage');
 	return <div>
 		<h1>
-			Deeper params page {params.someId} {params.someOtherId}
+			Deeper params page {someId} {someOtherId}
 		</h1>
-		<Link href={`/data/123/more/${parseInt(params.someOtherId) + 1}`}>
-			Go: {params.someOtherId}
+		<Link href={`/data/123/more/${parseInt(someOtherId) + 1}`}>
+			Go: {someOtherId}
 		</Link>
 		<br />
 		<Link href="/">
@@ -86,21 +82,14 @@ function App() {
 		<h1>
 			Simple
 		</h1>
-		<Route pattern="/">
-			<SamplePage />
-		</Route>
-		<Route pattern="/second">
-			<SecondPage />
-		</Route>
-		<Route pattern="/second/third">
-			<ThirdPage />
-		</Route>
-		<Route pattern="/data/:someId">
-			<ParamsPage />
-		</Route>
-		<Route pattern="/data/:someId/more/:someOtherId">
-			<NestedParamsPage />
-		</Route>
+		<Route pattern="/" element={() => <SamplePage />} />
+		<Route pattern="/second" element={({ params }) => <SecondPage />} />
+		<Route pattern="/second/third" element={() => <ThirdPage />} />
+		<Route pattern="/data/:someId" element={({ params }) => <ParamsPage someId={params.someId} />} />
+		<Route pattern="/data/:someId/more/:someOtherId" element={({ params }) => <NestedParamsPage
+			someId={params.someId}
+			someOtherId={params.someOtherId}
+		/>} />
 	</DOMRouter>;
 }
 
