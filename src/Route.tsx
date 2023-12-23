@@ -1,34 +1,33 @@
-import { ReactNode, useMemo } from 'react';
-import { useRouter } from './Router';
-import { ParamsProvider, ParamsType } from './Params';
+import { useLocation } from './Router';
+import { createContext, ReactNode, useContext, useMemo } from 'react';
+import { patterMatcher } from './utils';
 
-export function usePatterMatcher(pattern: string, path: string, exact?: boolean) {
-	const matchProps = new RegExp(':[^\/]+', 'g');
-	const array = [...pattern.matchAll(matchProps)];
-	let regexString = pattern.replaceAll('/', '\\/');
 
-	array.forEach(m => {
-		regexString = regexString.replaceAll(m[0], `(?<${m[0].replace(':', '')}>[^\/]+)`);
-	});
+export function useMatcher(pattern: string, exact?: boolean) {
+	const location = useLocation();
 
-	if (exact) {
-		regexString += '$';
-	}
-
-	const routeRegex = new RegExp(regexString);
-	return path.match(routeRegex);
+	return patterMatcher(pattern, location, exact);
 }
 
-export function Route(props: { path: string, exact?: boolean, children: ReactNode }) {
-	const router = useRouter();
-	const matches = usePatterMatcher(props.path, router.path, props.exact);
-	const paramsMemo = useMemo(() => {
-		console.log("Re memoing", props.path);
-		return matches?.groups || {};
-	}, [JSON.stringify(matches?.groups)]);
+export type ParamsType = { [param: string]: string };
 
-	if (!matches) return;
+const RouteContext = createContext<{ pattern: string }>({ pattern: "" });
+
+export function useRoute<T extends ParamsType>() {
+	return useContext(RouteContext);
+}
+
+export function Route(props: { pattern: string, exact?: boolean, children: ReactNode }) {
+	const matcher = useMatcher(props.pattern, props.exact);
+	if (!matcher) return null;
+
+	return <RouteContext.Provider value={{ pattern: props.pattern }}>{props.children}</RouteContext.Provider>;
+}
 
 
-	return <ParamsProvider params={paramsMemo as ParamsType}>{props.children}</ParamsProvider>;
+export function useParams<T>(){
+	const route = useRoute();
+	const match = useMatcher(route.pattern);
+
+	return (match?.groups ?? {}) as T;
 }

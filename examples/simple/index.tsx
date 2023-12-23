@@ -1,14 +1,13 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
 
-import {Route} from "../../src/Route";
-import {DOMRouter} from "../../src/DOMRouter";
-import {Link} from "../../src/Link";
-import {useParams} from "../../src/Params";
+import { Route, useParams } from '../../src/Route';
+import { DOMRouter } from '../../src/DOMRouter';
+import { Link } from '../../src/Link';
 
 
 function SamplePage() {
-	console.log("Sample page");
+	console.log('Sample page');
 	return <div>
 		<h1>
 			Sample page
@@ -19,11 +18,11 @@ function SamplePage() {
 		<Link href="/data/123">
 			Some params
 		</Link>
-	</div>
+	</div>;
 }
 
 function SecondPage() {
-	console.log("Second page");
+	console.log('Second page');
 	return <div>
 		<h1>
 			Second page (relative addative href)
@@ -31,11 +30,11 @@ function SecondPage() {
 		<Link href="third">
 			Third page
 		</Link>
-	</div>
+	</div>;
 }
 
 function ThirdPage() {
-	console.log("Third page");
+	console.log('Third page');
 	return <div>
 		<h1>
 			Third page
@@ -43,12 +42,13 @@ function ThirdPage() {
 		<Link href="/data/123">
 			Some params
 		</Link>
-	</div>
+	</div>;
 }
 
 function ParamsPage() {
 	const params = useParams<{ someId: string }>();
-	console.log("ParamsPage");
+
+	console.log('ParamsPage', params);
 	return <div>
 		<h1>
 			Params page {params.someId}
@@ -59,13 +59,13 @@ function ParamsPage() {
 		<Link href="/">
 			Home
 		</Link>
-	</div>
+	</div>;
 }
 
 function NestedParamsPage() {
 	const params = useParams<{ someId: string, someOtherId: string }>();
 
-	console.log("Deeper ParamsPage");
+	console.log('Deeper ParamsPage');
 	return <div>
 		<h1>
 			Deeper params page {params.someId} {params.someOtherId}
@@ -73,35 +73,36 @@ function NestedParamsPage() {
 		<Link href={`/data/123/more/${parseInt(params.someOtherId) + 1}`}>
 			Go: {params.someOtherId}
 		</Link>
-		<br/>
+		<br />
 		<Link href="/">
 			Home
 		</Link>
-	</div>
+	</div>;
 }
-
-
 
 
 function App() {
 	return <DOMRouter>
-		<Route path="/">
-			<SamplePage/>
+		<h1>
+			Simple
+		</h1>
+		<Route pattern="/">
+			<SamplePage />
 		</Route>
-		<Route path="/second">
-			<SecondPage/>
+		<Route pattern="/second">
+			<SecondPage />
 		</Route>
-		<Route path="/second/third">
-			<ThirdPage/>
+		<Route pattern="/second/third">
+			<ThirdPage />
 		</Route>
-		<Route path="/data/:someId">
-			<ParamsPage/>
+		<Route pattern="/data/:someId">
+			<ParamsPage />
 		</Route>
-		<Route path="/data/:someId/more/:someOtherId">
-			<NestedParamsPage/>
+		<Route pattern="/data/:someId/more/:someOtherId">
+			<NestedParamsPage />
 		</Route>
-	</DOMRouter>
+	</DOMRouter>;
 }
 
-const root = ReactDOM.createRoot(document.getElementById("root")!);
-root.render(<App/>);
+const root = ReactDOM.createRoot(document.getElementById('root')!);
+root.render(<App />);
