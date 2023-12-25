@@ -4,6 +4,8 @@ import ReactDOM from 'react-dom/client';
 import { Route } from '../../src/Route';
 import { DOMRouter } from '../../src/DOMRouter';
 import { Link } from '../../src/Link';
+import { useRouter } from '../../src';
+import { NavLink } from '../../src/NavLink';
 
 
 function SamplePage() {
@@ -62,6 +64,7 @@ function ParamsPage({ someId }: { someId: string }) {
 
 function NestedParamsPage({ someId, someOtherId }: { someId: string, someOtherId: string }) {
 	console.log('Deeper ParamsPage');
+	const {setLocation} = useRouter();
 	return <div>
 		<h1>
 			Deeper params page {someId} {someOtherId}
@@ -73,6 +76,10 @@ function NestedParamsPage({ someId, someOtherId }: { someId: string, someOtherId
 		<Link href="/">
 			Home
 		</Link>
+
+		<button onClick={() => setLocation("/")}>
+			Navigate with setLocation
+		</button>
 	</div>;
 }
 
@@ -82,6 +89,13 @@ function App() {
 		<h1>
 			Simple
 		</h1>
+		<NavLink href="/" exact>Link 1</NavLink>
+		<NavLink href="/">Link 1 (not exact)</NavLink>
+		<NavLink href="/second">Second</NavLink>
+		<NavLink href="/second/third">Third</NavLink>
+		<NavLink href="/data/2" exact>Data 2</NavLink>
+		<NavLink href="/data/2/more/2" exact>More 2</NavLink>
+
 		<Route pattern="/" element={() => <SamplePage />} />
 		<Route pattern="/second" element={({ params }) => <SecondPage />} />
 		<Route pattern="/second/third" element={() => <ThirdPage />} />

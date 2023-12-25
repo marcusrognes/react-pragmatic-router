@@ -1,6 +1,6 @@
 import { ReactNode, useMemo } from 'react';
 import { useRouter } from './Router';
-import { patterMatcher } from './utils';
+import { patternMatcher } from './utils';
 
 
 export type ParamsType = { [param: string]: string };
@@ -13,7 +13,7 @@ export function Route(props: {
 }) {
 	const { location } = useRouter();
 
-	const matches = patterMatcher(props.pattern, location, props.exact);
+	const matches = patternMatcher(props.pattern, location, props.exact);
 
 
 	return useMemo(() => {

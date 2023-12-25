@@ -1,16 +1,4 @@
-export function randomId(length: number) {
-	let result = '';
-	const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-	const charactersLength = characters.length;
-	let counter = 0;
-	while (counter < length) {
-		result += characters.charAt(Math.floor(Math.random() * charactersLength));
-		counter += 1;
-	}
-	return result;
-}
-
-export function patterMatcher(pattern: string, path: string, exact?: boolean) {
+export function patternMatcher(pattern: string, path: string, exact?: boolean) {
 	const matchProps = new RegExp(':[^\/]+', 'g');
 	const array = [...pattern.matchAll(matchProps)];
 	let regexString = pattern.replaceAll('/', '\\/');
