@@ -1,6 +1,6 @@
 {
 	"name": "react-pragmatic-router",
-	"version": "2.0.2",
+	"version": "2.0.3",
 	"description": "A simple react router for lazy people, without all the added complexity of react-router and the likes.",
 	"files": [
 		"dist"
@@ -18,12 +18,12 @@
 		"url": "git+https://github.com/marcusrognes/react-pragmatic-router.git"
 	},
 	"license": "ISC",
-	"dependencies": {
-		"react": "^18.2.0",
-		"react-dom": "^18.2.0",
-		"ts-loader": "^9.5.1"
+	"peerDependencies": {
+		"react": "^18.2.0"
 	},
 	"devDependencies": {
+		"react-dom": "^18.2.0",
+		"ts-loader": "^9.5.1",
 		"@types/react": "^18.2.45",
 		"@types/react-dom": "^18.2.18",
 		"html-webpack-plugin": "^5.6.0",
