@@ -14,13 +14,13 @@ export function NavLink({
 }) {
 	const { location, setLocation } = useRouter();
 	let classNames = '';
-	if (className) classNames += className;
+	if (className) classNames += " " + className;
 
 
 	const matches = patternMatcher(props.href || '', location, exact);
 
 	if (!!matches) {
-		classNames += (activeClass || 'active');
+		classNames += " " + (activeClass || 'active');
 	}
 
 
