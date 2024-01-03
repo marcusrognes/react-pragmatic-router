@@ -1,7 +1,8 @@
 {
 	"name": "react-pragmatic-router",
-	"version": "2.0.6",
+	"version": "2.0.7",
 	"description": "A simple react router for lazy people, without all the added complexity of react-router and the likes.",
+	"keywords": ["react", "router", "route", "link"],
 	"files": [
 		"dist"
 	],
