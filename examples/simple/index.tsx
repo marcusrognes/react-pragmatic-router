@@ -6,6 +6,7 @@ import { DOMRouter } from '../../src/DOMRouter';
 import { Link } from '../../src/Link';
 import { useRouter } from '../../src';
 import { NavLink } from '../../src/NavLink';
+import { SwitchRoute } from '../../src/SwitchRoute';
 
 
 function SamplePage() {
@@ -91,8 +92,10 @@ function App() {
 		<NavLink href="/second/third">Third</NavLink>
 		<NavLink href="/data/2" exact>Data 2</NavLink>
 		<NavLink href="/data/2/more/2" exact>More 2</NavLink>
+		<NavLink href="/switch/some-static" exact>Switch static</NavLink>
+		<NavLink href="/switch/SomeId" exact>Switch SomeId skip static</NavLink>
 
-		<Route pattern="/" element={() => <SamplePage />} />
+		<Route pattern="/" exact element={() => <SamplePage />} />
 		<Route pattern="/second" element={({ params }) => <SecondPage />} />
 		<Route pattern="/second/third" element={() => <ThirdPage />} />
 		<Route pattern="/data/:someId" exact element={({ params }) => <ParamsPage someId={params.someId} />} />
@@ -100,6 +103,12 @@ function App() {
 			someId={params.someId}
 			someOtherId={params.someOtherId}
 		/>} />
+
+		<SwitchRoute patterns={{
+			'/switch/some-static': () => <div><h1>Some static site</h1></div>,
+			'/switch/:someId': ({params}) => <div><h1>{params.someId}</h1></div>,
+			'/switch': () => <div><h1>Root switch</h1></div>
+		}} exact/>
 	</DOMRouter>;
 }
 

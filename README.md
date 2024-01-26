@@ -67,6 +67,31 @@ function Page(props: { someParam: string }) {
 }
 ```
 
+## Exact route:
+Exact is the same as adding ^ before and $ after your route `^/posts$` and `/posts` with exact is the same
+
+These two routes does the same thing
+```tsx
+<DOMRouter>
+	<Route pattern="/posts" exact element={() => <PostsPage />} />
+	<Route pattern="^/posts$" element={() => <PostsPage />} />
+</DOMRouter>;
+```
+
+## SwitchRoute:
+```tsx
+<DOMRouter>
+	<SwitchRoute
+        exact
+		patterns={{
+			'/posts/create-post': () => <CreatePostPage />,
+			'/posts/:postId': ({ params }) => <PostPage id={params.postId} />,
+		}}
+	/>
+</DOMRouter>;
+```
+
+
 ## Programmatic navigation:
 
 ```tsx
