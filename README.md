@@ -6,8 +6,9 @@
 
 
 ## Usage:
+
 ```tsx
-<DOMRouter>
+<BrowserRouter>
 	<Route pattern="/" element={() => <SamplePage />} />
 	<Route pattern="/second" element={({ params }) => <SecondPage />} />
 	<Route pattern="/second/third" element={() => <ThirdPage />} />
@@ -16,7 +17,7 @@
 		someId={params.someId}
 		someOtherId={params.someOtherId}
 	/>} />
-</DOMRouter>
+</BrowserRouter>
 ```
 
 ## Or:
@@ -47,9 +48,9 @@ function Page(props: { someParam: string }) {
 
 
 function App() {
-	return <DOMRouter>
+	return <BrowserRouter>
 		<Route pattern="/page/:someParam" element={({ params }) => <Page someParam={params.someParam} />} />
-	</DOMRouter>;
+	</BrowserRouter>;
 }
 ```
 
@@ -72,15 +73,15 @@ Exact is the same as adding ^ before and $ after your route `^/posts$` and `/pos
 
 These two routes does the same thing
 ```tsx
-<DOMRouter>
+<BrowserRouter>
 	<Route pattern="/posts" exact element={() => <PostsPage />} />
 	<Route pattern="^/posts$" element={() => <PostsPage />} />
-</DOMRouter>;
+</BrowserRouter>;
 ```
 
 ## SwitchRoute:
 ```tsx
-<DOMRouter>
+<BrowserRouter>
 	<SwitchRoute
         exact
 		patterns={{
@@ -88,7 +89,7 @@ These two routes does the same thing
 			'/posts/:postId': ({ params }) => <PostPage id={params.postId} />,
 		}}
 	/>
-</DOMRouter>;
+</BrowserRouter>;
 ```
 
 
@@ -150,10 +151,10 @@ function AnimatedPage() {
 }
 
 export function App() {
-	return <DOMRouter>
+	return <BrowserRouter>
 		<AnimatedRoute pattern="/" element={() => <AnimatedPage />} />
 		<AnimatedRoute pattern="/some-other-page" element={() => <AnimatedPage />} />
-	</DOMRouter>;
+	</BrowserRouter>;
 }
 
 ```
