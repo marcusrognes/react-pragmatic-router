@@ -1,9 +1,7 @@
 import { ReactNode, useMemo } from 'react';
 import { useRouter } from './Router';
 import { patternMatcher } from './utils';
-
-
-export type ParamsType = { [param: string]: string };
+import { ParamsType } from './Route';
 
 export function SwitchRoute(props: {
 	patterns: { [pattern: string]: ({ params }: { params: ParamsType }) => ReactNode },

@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 
 import { Route } from '../../src/Route';
-import { DOMRouter } from '../../src/DOMRouter';
+import { BrowserRouter } from '../../src/BrowserRouter';
 import { Link } from '../../src/Link';
 import { useRouter } from '../../src';
 import { NavLink } from '../../src/NavLink';
@@ -60,7 +60,6 @@ function ParamsPage({ someId }: { someId: string }) {
 }
 
 function NestedParamsPage({ someId, someOtherId }: { someId: string, someOtherId: string }) {
-	console.log('Deeper ParamsPage');
 	const {setLocation} = useRouter();
 	return <div>
 		<h1>
@@ -82,7 +81,7 @@ function NestedParamsPage({ someId, someOtherId }: { someId: string, someOtherId
 
 
 function App() {
-	return <DOMRouter>
+	return <BrowserRouter>
 		<h1>
 			Simple
 		</h1>
@@ -109,8 +108,9 @@ function App() {
 			'/switch/:someId': ({params}) => <div><h1>{params.someId}</h1></div>,
 			'/switch': () => <div><h1>Root switch</h1></div>
 		}} exact/>
-	</DOMRouter>;
+	</BrowserRouter>;
 }
 
+// @ts-ignore
 const root = ReactDOM.createRoot(document.getElementById('root')!);
 root.render(<App />);

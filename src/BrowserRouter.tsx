@@ -2,7 +2,7 @@ import { Router } from './Router';
 import { ReactNode, useEffect, useState } from 'react';
 
 
-export function DOMRouter(props: { children: ReactNode }) {
+export function BrowserRouter(props: { children: ReactNode }) {
 	const [location, _setLocation] = useState(window.location.pathname);
 
 	function setLocation(newLocation: string) {
