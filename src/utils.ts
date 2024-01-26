@@ -8,7 +8,7 @@ export function patternMatcher(pattern: string, path: string, exact?: boolean) {
 	});
 
 	if (exact) {
-		regexString += '$';
+		regexString = `^${regexString}$`;
 	}
 
 	const routeRegex = new RegExp(regexString);

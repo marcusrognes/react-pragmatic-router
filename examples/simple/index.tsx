@@ -9,7 +9,6 @@ import { NavLink } from '../../src/NavLink';
 
 
 function SamplePage() {
-	console.log('Sample page');
 	return <div>
 		<h1>
 			Sample page
@@ -24,7 +23,6 @@ function SamplePage() {
 }
 
 function SecondPage() {
-	console.log('Second page');
 	return <div>
 		<h1>
 			Second page (relative addative href)
@@ -36,7 +34,6 @@ function SecondPage() {
 }
 
 function ThirdPage() {
-	console.log('Third page');
 	return <div>
 		<h1>
 			Third page
@@ -48,7 +45,6 @@ function ThirdPage() {
 }
 
 function ParamsPage({ someId }: { someId: string }) {
-	console.log('ParamsPage', someId);
 	return <div>
 		<h1>
 			Params page {someId}
@@ -99,7 +95,7 @@ function App() {
 		<Route pattern="/" element={() => <SamplePage />} />
 		<Route pattern="/second" element={({ params }) => <SecondPage />} />
 		<Route pattern="/second/third" element={() => <ThirdPage />} />
-		<Route pattern="/data/:someId" element={({ params }) => <ParamsPage someId={params.someId} />} />
+		<Route pattern="/data/:someId" exact element={({ params }) => <ParamsPage someId={params.someId} />} />
 		<Route pattern="/data/:someId/more/:someOtherId" element={({ params }) => <NestedParamsPage
 			someId={params.someId}
 			someOtherId={params.someOtherId}
