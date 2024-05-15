@@ -6,8 +6,8 @@ export function BrowserRouter(props: { children: ReactNode }) {
 	const [location, _setLocation] = useState(window.location.pathname);
 
 	function setLocation(newLocation: string) {
-		_setLocation(newLocation);
 		window.history.pushState(null, '', newLocation);
+		_setLocation(window.location.pathname);
 	}
 
 	useEffect(() => {
