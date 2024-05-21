@@ -20,13 +20,20 @@ function SamplePage() {
 		<Link href="/data/123">
 			Some params
 		</Link>
+
+		<Link href="/second/?test=1223">
+			With search params
+		</Link>
 	</div>;
 }
 
 function SecondPage() {
+	const { location } = useRouter();
+	const urlParams = new URLSearchParams(location.split("?")[1] ?? "");
+
 	return <div>
 		<h1>
-			Second page (relative addative href)
+			Second page (relative addative href) searchParams: test:{urlParams.get('test')}
 		</h1>
 		<Link href="third">
 			Third page
@@ -60,7 +67,7 @@ function ParamsPage({ someId }: { someId: string }) {
 }
 
 function NestedParamsPage({ someId, someOtherId }: { someId: string, someOtherId: string }) {
-	const {setLocation} = useRouter();
+	const { setLocation } = useRouter();
 	return <div>
 		<h1>
 			Deeper params page {someId} {someOtherId}
@@ -73,7 +80,7 @@ function NestedParamsPage({ someId, someOtherId }: { someId: string, someOtherId
 			Home
 		</Link>
 
-		<button onClick={() => setLocation("/")}>
+		<button onClick={() => setLocation('/')}>
 			Navigate with setLocation
 		</button>
 	</div>;
@@ -105,9 +112,9 @@ function App() {
 
 		<SwitchRoute patterns={{
 			'/switch/some-static': () => <div><h1>Some static site</h1></div>,
-			'/switch/:someId': ({params}) => <div><h1>{params.someId}</h1></div>,
-			'/switch': () => <div><h1>Root switch</h1></div>
-		}} exact/>
+			'/switch/:someId': ({ params }) => <div><h1>{params.someId}</h1></div>,
+			'/switch': () => <div><h1>Root switch</h1></div>,
+		}} exact />
 	</BrowserRouter>;
 }
 

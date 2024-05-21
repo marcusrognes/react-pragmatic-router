@@ -24,7 +24,7 @@ module.exports = {
     devServer: {
         compress: true,
         historyApiFallback: true,
-        port: 3000,
+        port: 3030,
         client: {
             overlay: {
                 errors: true,
