@@ -3,26 +3,26 @@ import { useRouter } from './Router';
 import { patternMatcher } from './utils';
 
 export function NavLink({
-	                        children,
-	                        activeClass,
-	                        className,
-	                        exact,
-	                        ...props
-                        }: DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> & {
+							children,
+							activeClass,
+							className,
+							exact,
+							replace,
+							...props
+						}: DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> & {
 	activeClass?: string,
-	exact?: boolean
+	exact?: boolean,
+	replace?: boolean
 }) {
 	const { location, setLocation } = useRouter();
 	let classNames = '';
-	if (className) classNames += " " + className;
-
+	if (className) classNames += ' ' + className;
 
 	const matches = patternMatcher(props.href || '', location, exact);
 
 	if (!!matches) {
-		classNames += " " + (activeClass || 'active');
+		classNames += ' ' + (activeClass || 'active');
 	}
-
 
 	return <a {...props} className={classNames} onClick={(e) => {
 		props.onClick?.(e);
@@ -34,9 +34,9 @@ export function NavLink({
 		e.preventDefault();
 
 		if (props.href?.startsWith('/')) {
-			setLocation(props.href);
+			setLocation(props.href, { replace });
 		} else {
-			setLocation(location + '/' + props.href);
+			setLocation(location + '/' + props.href, { replace });
 		}
 	}}>
 		{children}

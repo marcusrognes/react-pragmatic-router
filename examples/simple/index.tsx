@@ -80,6 +80,11 @@ function NestedParamsPage({ someId, someOtherId }: { someId: string, someOtherId
 			Home
 		</Link>
 
+
+		<Link href="/data/321/more/321" replace>
+			Replace
+		</Link>
+
 		<button onClick={() => setLocation('/')}>
 			Navigate with setLocation
 		</button>

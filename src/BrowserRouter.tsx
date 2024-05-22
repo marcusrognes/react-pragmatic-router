@@ -1,4 +1,4 @@
-import { Router } from './Router';
+import { Router, SetLocationProps } from './Router';
 import { ReactNode, useEffect, useState } from 'react';
 
 function combineLocationAndSearch(location: string, search: string) {
@@ -13,8 +13,13 @@ export function BrowserRouter(props: { children: ReactNode }) {
 	const [location, _setLocation] = useState(window.location.pathname);
 	const [searchParams, setSearchParams] = useState(window.location.search);
 
-	function setLocation(newLocation: string) {
-		window.history.pushState(null, '', newLocation);
+	function setLocation(newLocation: string, props?: SetLocationProps) {
+		if(props?.replace){
+			window.history.replaceState(null, '', newLocation);
+		}else{
+			window.history.pushState(null, '', newLocation);
+		}
+
 		_setLocation(window.location.pathname);
 		setSearchParams(window.location.search);
 	}

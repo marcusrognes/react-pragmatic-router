@@ -2,10 +2,13 @@ import { AnchorHTMLAttributes, DetailedHTMLProps } from 'react';
 import { useRouter } from './Router';
 
 export function Link({
-	                     children,
-	                     ...props
-                     }: DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>) {
-	const {location, setLocation} = useRouter();
+						 children,
+						 replace,
+						 ...props
+					 }: DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> & {
+	replace?: boolean
+}) {
+	const { location, setLocation } = useRouter();
 
 	return <a {...props} onClick={(e) => {
 		props.onClick?.(e);
@@ -17,9 +20,9 @@ export function Link({
 		e.preventDefault();
 
 		if (props.href?.startsWith('/')) {
-			setLocation(props.href);
+			setLocation(props.href, { replace });
 		} else {
-			setLocation(location + '/' + props.href);
+			setLocation(location + '/' + props.href, { replace });
 		}
 	}}>
 		{children}
