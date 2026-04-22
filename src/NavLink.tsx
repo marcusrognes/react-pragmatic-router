@@ -8,11 +8,13 @@ export function NavLink({
 	className,
 	exact,
 	replace,
+	modal,
 	...props
 }: DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> & {
 	activeClass?: string,
 	exact?: boolean,
-	replace?: boolean
+	replace?: boolean,
+	modal?: boolean,
 }) {
 	const { location, setLocation } = useRouter();
 	let classNames = '';
@@ -33,9 +35,8 @@ export function NavLink({
 
 		e.preventDefault();
 
-		props.href && setLocation(props.href, { replace });
+		props.href && setLocation(props.href, { replace, modal });
 	}}>
 		{children}
 	</a>;
 }
-

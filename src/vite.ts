@@ -16,9 +16,11 @@ export interface ReactPragmaticRouterPlugin {
 }
 
 type RouteEntry = { pattern: string; file: string; layouts: string[] };
+type Collected = { pages: RouteEntry[]; modals: RouteEntry[] };
 
 const VIRTUAL_ID = 'virtual:react-pragmatic-router/routes';
 const RESOLVED_VIRTUAL_ID = '\0' + VIRTUAL_ID;
+const MODAL_DIR = '@modal';
 
 function transformSegment(name: string): string {
 	return name
@@ -49,24 +51,28 @@ function walk(
 	extensions: string[],
 	prefix = '',
 	layouts: string[] = [],
-): RouteEntry[] {
-	if (!fs.existsSync(dir)) return [];
+	inModal = false,
+): Collected {
+	const result: Collected = { pages: [], modals: [] };
+	if (!fs.existsSync(dir)) return result;
 
 	const entries = fs.readdirSync(dir, { withFileTypes: true });
 	const layout = findLayout(dir, entries, extensions);
 	const currentLayouts = layout ? [...layouts, layout] : layouts;
-
-	const results: RouteEntry[] = [];
 
 	for (const entry of entries) {
 		const full = path.join(dir, entry.name);
 
 		if (entry.isDirectory()) {
 			if (entry.name.startsWith('_')) continue;
-			const nextPrefix = isGroup(entry.name)
+			const isModalDir = entry.name === MODAL_DIR;
+			const nextPrefix = (isGroup(entry.name) || isModalDir)
 				? prefix
 				: prefix + '/' + transformSegment(entry.name);
-			results.push(...walk(full, extensions, nextPrefix, currentLayouts));
+			const nextLayouts = isModalDir ? [] : currentLayouts;
+			const sub = walk(full, extensions, nextPrefix, nextLayouts, inModal || isModalDir);
+			result.pages.push(...sub.pages);
+			result.modals.push(...sub.modals);
 			continue;
 		}
 
@@ -75,14 +81,16 @@ function walk(
 
 		const base = entry.name.slice(0, -ext.length);
 		if (base.startsWith('_')) continue;
-		if (base.includes('.')) continue;
+		if (base.replace(/^\[\.\.\..+\]$/, '').includes('.')) continue;
 
 		const segment = base === 'index' ? '' : '/' + transformSegment(base);
 		const pattern = (prefix + segment) || '/';
-		results.push({ pattern, file: full, layouts: currentLayouts });
+		const entryObj: RouteEntry = { pattern, file: full, layouts: currentLayouts };
+		if (inModal) result.modals.push(entryObj);
+		else result.pages.push(entryObj);
 	}
 
-	return results;
+	return result;
 }
 
 function routeScore(pattern: string): [number, number, number] {
@@ -102,9 +110,9 @@ function sortRoutes(routes: RouteEntry[]): RouteEntry[] {
 	});
 }
 
-function generateModule(routes: RouteEntry[]): string {
+function generateModule(pages: RouteEntry[], modals: RouteEntry[]): string {
 	const layoutIds = new Map<string, number>();
-	for (const r of routes) {
+	for (const r of [...pages, ...modals]) {
 		for (const l of r.layouts) {
 			if (!layoutIds.has(l)) layoutIds.set(l, layoutIds.size);
 		}
@@ -114,36 +122,62 @@ function generateModule(routes: RouteEntry[]): string {
 		.map(([file, id]) => `const Layout${id} = lazy(() => import(${JSON.stringify(file)}));`)
 		.join('\n');
 
-	const pageImports = routes
+	const pageImports = pages
 		.map((r, i) => `const Page${i} = lazy(() => import(${JSON.stringify(r.file)}));`)
 		.join('\n');
 
-	const entries = routes
-		.map((r, i) => {
-			let expr = `createElement(Page${i}, { params })`;
-			for (let j = r.layouts.length - 1; j >= 0; j--) {
-				const id = layoutIds.get(r.layouts[j])!;
-				expr = `createElement(Layout${id}, { params }, ${expr})`;
-			}
-			return `    ${JSON.stringify(r.pattern)}: ({ params }) => ${expr},`;
-		})
+	const modalImports = modals
+		.map((r, i) => `const Modal${i} = lazy(() => import(${JSON.stringify(r.file)}));`)
 		.join('\n');
 
-	return `import { lazy, createElement } from 'react';
-import { SwitchRoute } from 'react-pragmatic-router';
+	function wrap(kind: 'Page' | 'Modal', r: RouteEntry, i: number): string {
+		let expr = `createElement(${kind}${i}, { params })`;
+		for (let j = r.layouts.length - 1; j >= 0; j--) {
+			const id = layoutIds.get(r.layouts[j])!;
+			expr = `createElement(Layout${id}, { params }, ${expr})`;
+		}
+		return expr;
+	}
+
+	const pageEntries = pages
+		.map((r, i) => `    ${JSON.stringify(r.pattern)}: ({ params }) => ${wrap('Page', r, i)},`)
+		.join('\n');
+
+	const modalEntries = modals
+		.map((r, i) => `    ${JSON.stringify(r.pattern)}: ({ params }) => ${wrap('Modal', r, i)},`)
+		.join('\n');
+
+	return `import { lazy, createElement, Suspense } from 'react';
+import { SwitchRoute, Router, useRouter } from 'react-pragmatic-router';
 
 ${layoutImports}
 ${pageImports}
+${modalImports}
 
-export const routes = ${JSON.stringify(routes.map((r) => r.pattern))};
+export const routes = ${JSON.stringify(pages.map((r) => r.pattern))};
+export const modalRoutes = ${JSON.stringify(modals.map((r) => r.pattern))};
 
 export function Routes() {
-  return createElement(SwitchRoute, {
+  const { location, setLocation, backgroundLocation } = useRouter();
+  const effective = backgroundLocation || location;
+  return createElement(Router, {
+    location: effective,
+    setLocation: setLocation,
+  }, createElement(SwitchRoute, {
     exact: true,
     patterns: {
-${entries}
+${pageEntries}
     },
-  });
+  }));
+}
+
+export function ModalRoutes() {
+  return createElement(Suspense, { fallback: null }, createElement(SwitchRoute, {
+    exact: true,
+    patterns: {
+${modalEntries}
+    },
+  }));
 }
 `;
 }
@@ -190,8 +224,8 @@ export function reactPragmaticRouterPlugin(
 
 		load(id) {
 			if (id !== RESOLVED_VIRTUAL_ID) return null;
-			const routes = sortRoutes(walk(routesDir, extensions));
-			return generateModule(routes);
+			const { pages, modals } = walk(routesDir, extensions);
+			return generateModule(sortRoutes(pages), sortRoutes(modals));
 		},
 	};
 }

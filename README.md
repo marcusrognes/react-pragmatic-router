@@ -136,12 +136,13 @@ Then in your app:
 ```tsx
 import { Suspense } from 'react';
 import { BrowserRouter } from 'react-pragmatic-router';
-import { Routes } from 'virtual:react-pragmatic-router/routes';
+import { Routes, ModalRoutes } from 'virtual:react-pragmatic-router/routes';
 
 export function App() {
     return <BrowserRouter>
         <Suspense fallback={null}>
             <Routes />
+            <ModalRoutes />
         </Suspense>
     </BrowserRouter>;
 }
@@ -161,6 +162,7 @@ export function App() {
 | `routes/(marketing)/pricing.tsx`       | `/pricing`           |
 | `routes/_layout.tsx`                   | wraps every page     |
 | `routes/users/_layout.tsx`             | wraps every `/users/*` page |
+| `routes/@modal/edit-thing/[id].tsx`    | `/edit-thing/:id` (overlay modal) |
 
 - Each route file must `export default` a component. It receives `{ params }` as a prop.
 - `[id]` → named param. `[...slug]` → catch-all, matches the rest of the path (including slashes), sorted after all other routes.
@@ -171,6 +173,25 @@ export function App() {
 - Sorting: static segments beat dynamic ones beat catch-all. So `/users/new` wins over `/users/:id`, and `/users/:id` wins over `/*rest`.
 - `SwitchRoute` with `exact: true` is used under the hood, so only one route renders at a time.
 - Dev server does a full reload when route files are added, removed, or renamed.
+
+### Modals
+
+Files inside any `@modal/` folder are modal routes. The `@modal` segment is dropped from the URL (like a route group), so `routes/@modal/edit-thing/[id].tsx` becomes `/edit-thing/:id`. Modals don't inherit page layouts.
+
+To open one as an overlay, pass the `modal` prop to `<Link>` / `<NavLink>`:
+
+```tsx
+<Link href="/edit-thing/42" modal>Edit 42</Link>
+```
+
+This stashes the current URL in `history.state` as `backgroundLocation`. `<Routes />` then renders against the background, so the page you were on stays mounted, and `<ModalRoutes />` renders the modal on top. Browser back closes the modal; refresh shows the modal standalone (no background).
+
+Inside a modal, read `backgroundLocation` and call `setLocation` to close:
+
+```tsx
+const { backgroundLocation, setLocation } = useRouter();
+const close = () => setLocation(backgroundLocation ?? '/');
+```
 
 See [`examples/vite-advanced`](./examples/vite-advanced) for a complete setup demonstrating layouts, groups, dynamic params and catch-all routes.
 

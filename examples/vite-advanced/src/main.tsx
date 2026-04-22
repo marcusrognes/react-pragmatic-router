@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-pragmatic-router';
-import { Routes } from 'virtual:react-pragmatic-router/routes';
+import { Routes, ModalRoutes } from 'virtual:react-pragmatic-router/routes';
 
 function App() {
 	return (
@@ -9,6 +9,7 @@ function App() {
 			<Suspense fallback={<p>Loading…</p>}>
 				<Routes />
 			</Suspense>
+			<ModalRoutes />
 		</BrowserRouter>
 	);
 }

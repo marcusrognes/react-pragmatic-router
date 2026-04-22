@@ -9,15 +9,32 @@ function combineLocationAndSearch(location: string, search: string) {
 	return location;
 }
 
+type HistoryState = { backgroundLocation?: string | null } | null;
+
 export function BrowserRouter(props: { children: ReactNode }) {
 	const [location, _setLocation] = useState(window.location.pathname);
 	const [searchParams, setSearchParams] = useState(window.location.search);
+	const [backgroundLocation, setBackgroundLocation] = useState<string | null>(() => {
+		const s = window.history.state as HistoryState;
+		return s?.backgroundLocation ?? null;
+	});
 
-	function setLocation(newLocation: string, props?: SetLocationProps) {
-		if(props?.replace){
-			window.history.replaceState(null, '', newLocation);
-		}else{
-			window.history.pushState(null, '', newLocation);
+	function setLocation(newLocation: string, p?: SetLocationProps) {
+		let newState: HistoryState = null;
+
+		if (p?.modal) {
+			const currentFull = combineLocationAndSearch(location, searchParams);
+			const bg = backgroundLocation ?? currentFull;
+			newState = { backgroundLocation: bg };
+			setBackgroundLocation(bg);
+		} else {
+			setBackgroundLocation(null);
+		}
+
+		if (p?.replace) {
+			window.history.replaceState(newState, '', newLocation);
+		} else {
+			window.history.pushState(newState, '', newLocation);
 		}
 
 		_setLocation(window.location.pathname);
@@ -28,15 +45,21 @@ export function BrowserRouter(props: { children: ReactNode }) {
 		function onPopstate() {
 			_setLocation(window.location.pathname);
 			setSearchParams(window.location.search);
+			const s = window.history.state as HistoryState;
+			setBackgroundLocation(s?.backgroundLocation ?? null);
 		}
 
 		window.addEventListener('popstate', onPopstate);
 		return () => {
 			window.removeEventListener('popstate', onPopstate);
 		};
-	}, [false]);
+	}, []);
 
-	return <Router location={combineLocationAndSearch(location, searchParams)} setLocation={setLocation}>
+	return <Router
+		location={combineLocationAndSearch(location, searchParams)}
+		setLocation={setLocation}
+		backgroundLocation={backgroundLocation}
+	>
 		{props.children}
 	</Router>;
 }

@@ -4,9 +4,11 @@ import { useRouter } from './Router';
 export function Link({
 	children,
 	replace,
+	modal,
 	...props
 }: DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> & {
-	replace?: boolean
+	replace?: boolean,
+	modal?: boolean,
 }) {
 	const { setLocation } = useRouter();
 
@@ -19,9 +21,8 @@ export function Link({
 
 		e.preventDefault();
 
-		props.href && setLocation(props.href, { replace });
+		props.href && setLocation(props.href, { replace, modal });
 	}}>
 		{children}
 	</a>;
 }
-
