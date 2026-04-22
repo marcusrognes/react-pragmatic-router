@@ -1,10 +1,17 @@
 export function patternMatcher(pattern: string, path: string, exact?: boolean) {
-	const matchProps = new RegExp(':[^\/]+', 'g');
-	const array = [...pattern.matchAll(matchProps)];
+	const paramProps = new RegExp(':[^\/]+', 'g');
+	const catchAllProps = new RegExp('\\*[^\\/]+', 'g');
+	const paramMatches = [...pattern.matchAll(paramProps)];
+	const catchAllMatches = [...pattern.matchAll(catchAllProps)];
 	let regexString = pattern.replaceAll('/', '\\/');
 
-	array.forEach(m => {
+	paramMatches.forEach(m => {
 		regexString = regexString.replaceAll(m[0], `(?<${m[0].replace(':', '')}>[^\/]+)`);
+	});
+
+	catchAllMatches.forEach(m => {
+		const name = m[0].replace('*', '');
+		regexString = regexString.replaceAll(m[0], `(?<${name}>.+)`);
 	});
 
 	if (exact) {

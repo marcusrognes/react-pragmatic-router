@@ -149,20 +149,29 @@ export function App() {
 
 ### Conventions
 
-| File                            | Pattern           |
-|---------------------------------|-------------------|
-| `routes/index.tsx`              | `/`               |
-| `routes/about.tsx`              | `/about`          |
-| `routes/users/index.tsx`        | `/users`          |
-| `routes/users/new.tsx`          | `/users/new`      |
-| `routes/users/[id].tsx`         | `/users/:id`      |
-| `routes/users/[id]/posts.tsx`   | `/users/:id/posts`|
+| File                                   | Pattern              |
+|----------------------------------------|----------------------|
+| `routes/index.tsx`                     | `/`                  |
+| `routes/about.tsx`                     | `/about`             |
+| `routes/users/index.tsx`               | `/users`             |
+| `routes/users/new.tsx`                 | `/users/new`         |
+| `routes/users/[id].tsx`                | `/users/:id`         |
+| `routes/users/[id]/posts.tsx`          | `/users/:id/posts`   |
+| `routes/docs/[...slug].tsx`            | `/docs/*slug`        |
+| `routes/(marketing)/pricing.tsx`       | `/pricing`           |
+| `routes/_layout.tsx`                   | wraps every page     |
+| `routes/users/_layout.tsx`             | wraps every `/users/*` page |
 
 - Each route file must `export default` a component. It receives `{ params }` as a prop.
-- Files and folders prefixed with `_` are ignored.
-- Static segments win over dynamic ones (e.g. `/users/new` is matched before `/users/:id`).
+- `[id]` → named param. `[...slug]` → catch-all, matches the rest of the path (including slashes), sorted after all other routes.
+- Folders named `(something)` are route groups: they don't appear in the URL, but can contain their own `_layout.tsx` that applies only to pages inside the group.
+- `_layout.tsx` at any depth wraps every descendant route. Layouts receive `{ children, params }`. Nest freely — `routes/_layout.tsx` wraps everything, `routes/users/_layout.tsx` additionally wraps `/users/*`.
+- Other files prefixed with `_` are ignored (treat them as private).
+- Sorting: static segments beat dynamic ones beat catch-all. So `/users/new` wins over `/users/:id`, and `/users/:id` wins over `/*rest`.
 - `SwitchRoute` with `exact: true` is used under the hood, so only one route renders at a time.
 - Dev server does a full reload when route files are added, removed, or renamed.
+
+See [`examples/vite-advanced`](./examples/vite-advanced) for a complete setup demonstrating layouts, groups, dynamic params and catch-all routes.
 
 ## Advanced (Animations etc):
 

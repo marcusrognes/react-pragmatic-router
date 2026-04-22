@@ -1,4 +1,3 @@
-import type { Plugin, ViteDevServer } from 'vite';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
@@ -7,32 +6,66 @@ export interface ReactPragmaticRouterPluginOptions {
 	extensions?: string[];
 }
 
-type RouteEntry = { pattern: string; file: string };
+export interface ReactPragmaticRouterPlugin {
+	name: 'react-pragmatic-router';
+	enforce: 'pre';
+	configResolved: (config: { root: string }) => void;
+	configureServer: (server: any) => void;
+	resolveId: (id: string) => string | null;
+	load: (id: string) => string | null;
+}
+
+type RouteEntry = { pattern: string; file: string; layouts: string[] };
 
 const VIRTUAL_ID = 'virtual:react-pragmatic-router/routes';
 const RESOLVED_VIRTUAL_ID = '\0' + VIRTUAL_ID;
 
 function transformSegment(name: string): string {
 	return name
-		.replace(/^\[\.\.\.(.+)\]$/, ':$1')
+		.replace(/^\[\.\.\.(.+)\]$/, '*$1')
 		.replace(/^\[(.+)\]$/, ':$1');
+}
+
+function isGroup(name: string): boolean {
+	return /^\(.+\)$/.test(name);
+}
+
+function findLayout(
+	dir: string,
+	entries: fs.Dirent[],
+	extensions: string[],
+): string | null {
+	for (const ext of extensions) {
+		const name = `_layout${ext}`;
+		if (entries.some(e => e.isFile() && e.name === name)) {
+			return path.join(dir, name);
+		}
+	}
+	return null;
 }
 
 function walk(
 	dir: string,
 	extensions: string[],
 	prefix = '',
+	layouts: string[] = [],
 ): RouteEntry[] {
 	if (!fs.existsSync(dir)) return [];
 
-	const results: RouteEntry[] = [];
 	const entries = fs.readdirSync(dir, { withFileTypes: true });
+	const layout = findLayout(dir, entries, extensions);
+	const currentLayouts = layout ? [...layouts, layout] : layouts;
+
+	const results: RouteEntry[] = [];
 
 	for (const entry of entries) {
 		const full = path.join(dir, entry.name);
 
 		if (entry.isDirectory()) {
-			results.push(...walk(full, extensions, prefix + '/' + transformSegment(entry.name)));
+			const nextPrefix = isGroup(entry.name)
+				? prefix
+				: prefix + '/' + transformSegment(entry.name);
+			results.push(...walk(full, extensions, nextPrefix, currentLayouts));
 			continue;
 		}
 
@@ -44,41 +77,63 @@ function walk(
 
 		const segment = base === 'index' ? '' : '/' + transformSegment(base);
 		const pattern = (prefix + segment) || '/';
-		results.push({ pattern, file: full });
+		results.push({ pattern, file: full, layouts: currentLayouts });
 	}
 
 	return results;
 }
 
+function routeScore(pattern: string): [number, number, number] {
+	const hasCatchAll = /\*/.test(pattern) ? 1 : 0;
+	const dynamicCount = (pattern.match(/:/g) || []).length;
+	const length = pattern.length;
+	return [hasCatchAll, dynamicCount, -length];
+}
+
 function sortRoutes(routes: RouteEntry[]): RouteEntry[] {
 	return routes.slice().sort((a, b) => {
-		const aDyn = (a.pattern.match(/:/g) || []).length;
-		const bDyn = (b.pattern.match(/:/g) || []).length;
+		const [aCatch, aDyn, aLen] = routeScore(a.pattern);
+		const [bCatch, bDyn, bLen] = routeScore(b.pattern);
+		if (aCatch !== bCatch) return aCatch - bCatch;
 		if (aDyn !== bDyn) return aDyn - bDyn;
-		return b.pattern.length - a.pattern.length;
+		return aLen - bLen;
 	});
 }
 
 function generateModule(routes: RouteEntry[]): string {
-	const imports = routes
+	const layoutIds = new Map<string, number>();
+	for (const r of routes) {
+		for (const l of r.layouts) {
+			if (!layoutIds.has(l)) layoutIds.set(l, layoutIds.size);
+		}
+	}
+
+	const layoutImports = [...layoutIds.entries()]
+		.map(([file, id]) => `const Layout${id} = lazy(() => import(${JSON.stringify(file)}));`)
+		.join('\n');
+
+	const pageImports = routes
 		.map((r, i) => `const Page${i} = lazy(() => import(${JSON.stringify(r.file)}));`)
 		.join('\n');
 
 	const entries = routes
-		.map(
-			(r, i) =>
-				`    ${JSON.stringify(r.pattern)}: ({ params }) => createElement(Page${i}, { params }),`,
-		)
+		.map((r, i) => {
+			let expr = `createElement(Page${i}, { params })`;
+			for (let j = r.layouts.length - 1; j >= 0; j--) {
+				const id = layoutIds.get(r.layouts[j])!;
+				expr = `createElement(Layout${id}, { params }, ${expr})`;
+			}
+			return `    ${JSON.stringify(r.pattern)}: ({ params }) => ${expr},`;
+		})
 		.join('\n');
 
 	return `import { lazy, createElement } from 'react';
 import { SwitchRoute } from 'react-pragmatic-router';
 
-${imports}
+${layoutImports}
+${pageImports}
 
-export const routes = ${JSON.stringify(
-		routes.map((r) => r.pattern),
-	)};
+export const routes = ${JSON.stringify(routes.map((r) => r.pattern))};
 
 export function Routes() {
   return createElement(SwitchRoute, {
@@ -93,10 +148,10 @@ ${entries}
 
 export function reactPragmaticRouterPlugin(
 	options: ReactPragmaticRouterPluginOptions,
-): Plugin {
+): ReactPragmaticRouterPlugin {
 	const extensions = options.extensions ?? ['.tsx', '.ts', '.jsx', '.js'];
 	let routesDir = '';
-	let server: ViteDevServer | null = null;
+	let server: any = null;
 
 	function invalidate(file: string) {
 		if (!server) return;
