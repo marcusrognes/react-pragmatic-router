@@ -166,7 +166,7 @@ export function App() {
 - `[id]` → named param. `[...slug]` → catch-all, matches the rest of the path (including slashes), sorted after all other routes.
 - Folders named `(something)` are route groups: they don't appear in the URL, but can contain their own `_layout.tsx` that applies only to pages inside the group.
 - `_layout.tsx` at any depth wraps every descendant route. Layouts receive `{ children, params }`. Nest freely — `routes/_layout.tsx` wraps everything, `routes/users/_layout.tsx` additionally wraps `/users/*`.
-- Other files prefixed with `_` are ignored (treat them as private).
+- Other files prefixed with `_` are ignored (treat them as private). Folders prefixed with `_` are also skipped entirely, so you can colocate non-route code — e.g. `routes/_components/Button.tsx` or `routes/users/_hooks/useUser.ts` — without it showing up as a URL.
 - Sorting: static segments beat dynamic ones beat catch-all. So `/users/new` wins over `/users/:id`, and `/users/:id` wins over `/*rest`.
 - `SwitchRoute` with `exact: true` is used under the hood, so only one route renders at a time.
 - Dev server does a full reload when route files are added, removed, or renamed.

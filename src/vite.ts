@@ -62,6 +62,7 @@ function walk(
 		const full = path.join(dir, entry.name);
 
 		if (entry.isDirectory()) {
+			if (entry.name.startsWith('_')) continue;
 			const nextPrefix = isGroup(entry.name)
 				? prefix
 				: prefix + '/' + transformSegment(entry.name);
