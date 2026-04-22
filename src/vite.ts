@@ -75,6 +75,7 @@ function walk(
 
 		const base = entry.name.slice(0, -ext.length);
 		if (base.startsWith('_')) continue;
+		if (base.includes('.')) continue;
 
 		const segment = base === 'index' ? '' : '/' + transformSegment(base);
 		const pattern = (prefix + segment) || '/';
