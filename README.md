@@ -108,6 +108,62 @@ function Page(props: { someParam: string }) {
 }
 ```
 
+## Vite plugin (file-based routing):
+
+Add the plugin to `vite.config.ts`:
+
+```ts
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { reactPragmaticRouterPlugin } from 'react-pragmatic-router/vite';
+
+export default defineConfig({
+    plugins: [
+        react(),
+        reactPragmaticRouterPlugin({ path: './src/routes' }),
+    ],
+});
+```
+
+Add a reference in an ambient `.d.ts` (e.g. `src/vite-env.d.ts`) so TS knows the virtual module:
+
+```ts
+/// <reference types="react-pragmatic-router/client" />
+```
+
+Then in your app:
+
+```tsx
+import { Suspense } from 'react';
+import { BrowserRouter } from 'react-pragmatic-router';
+import { Routes } from 'virtual:react-pragmatic-router/routes';
+
+export function App() {
+    return <BrowserRouter>
+        <Suspense fallback={null}>
+            <Routes />
+        </Suspense>
+    </BrowserRouter>;
+}
+```
+
+### Conventions
+
+| File                            | Pattern           |
+|---------------------------------|-------------------|
+| `routes/index.tsx`              | `/`               |
+| `routes/about.tsx`              | `/about`          |
+| `routes/users/index.tsx`        | `/users`          |
+| `routes/users/new.tsx`          | `/users/new`      |
+| `routes/users/[id].tsx`         | `/users/:id`      |
+| `routes/users/[id]/posts.tsx`   | `/users/:id/posts`|
+
+- Each route file must `export default` a component. It receives `{ params }` as a prop.
+- Files and folders prefixed with `_` are ignored.
+- Static segments win over dynamic ones (e.g. `/users/new` is matched before `/users/:id`).
+- `SwitchRoute` with `exact: true` is used under the hood, so only one route renders at a time.
+- Dev server does a full reload when route files are added, removed, or renamed.
+
 ## Advanced (Animations etc):
 
 ```tsx
