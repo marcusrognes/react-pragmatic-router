@@ -1,3 +1,4 @@
+import { motion } from 'motion/react';
 import { useRouter } from 'react-pragmatic-router';
 
 const overlay: React.CSSProperties = {
@@ -26,7 +27,14 @@ export default function EditThingModal({ params }: { params: { id: string } }) {
 
 	return (
 		<div role="dialog" aria-modal="true" style={overlay} onClick={close}>
-			<div style={sheet} onClick={(e) => e.stopPropagation()}>
+			<motion.div
+				style={sheet}
+				initial={{ scale: 0.96, y: 8 }}
+				animate={{ scale: 1, y: 0 }}
+				exit={{ scale: 0.96, y: 8 }}
+				transition={{ duration: 0.18 }}
+				onClick={(e) => e.stopPropagation()}
+			>
 				<h2 style={{ marginTop: 0 }}>Edit thing {params.id}</h2>
 				<p>
 					This modal lives at <code>/edit-thing/{params.id}</code> and is
@@ -38,7 +46,7 @@ export default function EditThingModal({ params }: { params: { id: string } }) {
 					modal alone.
 				</p>
 				<button onClick={close}>Close</button>
-			</div>
+			</motion.div>
 		</div>
 	);
 }

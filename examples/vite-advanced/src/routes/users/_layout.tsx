@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { AnimatePresence } from 'motion/react';
 import { Link } from 'react-pragmatic-router';
 
 export default function UsersLayout({ children }: { children: ReactNode }) {
@@ -13,7 +14,9 @@ export default function UsersLayout({ children }: { children: ReactNode }) {
 					<li><Link href="/users/7">User 7</Link></li>
 				</ul>
 			</aside>
-			<div>{children}</div>
+			<div>
+				<AnimatePresence mode="wait">{children}</AnimatePresence>
+			</div>
 		</div>
 	);
 }

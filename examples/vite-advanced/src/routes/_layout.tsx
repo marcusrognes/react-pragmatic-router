@@ -1,4 +1,5 @@
 import { ReactNode, Suspense } from 'react';
+import { AnimatePresence } from 'motion/react';
 import { NavLink } from 'react-pragmatic-router';
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -40,7 +41,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 				</nav>
 			</header>
 			<main>
-				<Suspense fallback={<p>Loading…</p>}>{children}</Suspense>
+				<Suspense fallback={<p>Loading…</p>}>
+					<AnimatePresence mode="wait">{children}</AnimatePresence>
+				</Suspense>
 			</main>
 		</div>
 	);

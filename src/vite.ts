@@ -131,10 +131,12 @@ function generateModule(pages: RouteEntry[], modals: RouteEntry[]): string {
 		.join('\n');
 
 	function wrap(kind: 'Page' | 'Modal', r: RouteEntry, i: number): string {
-		let expr = `createElement(${kind}${i}, { params })`;
+		const leafKey = JSON.stringify(r.pattern);
+		let expr = `createElement(${kind}${i}, { params, key: ${leafKey} })`;
 		for (let j = r.layouts.length - 1; j >= 0; j--) {
 			const id = layoutIds.get(r.layouts[j])!;
-			expr = `createElement(Layout${id}, { params }, ${expr})`;
+			const layoutKey = JSON.stringify(`layout:${id}`);
+			expr = `createElement(Layout${id}, { params, key: ${layoutKey} }, ${expr})`;
 		}
 		return expr;
 	}
@@ -147,8 +149,8 @@ function generateModule(pages: RouteEntry[], modals: RouteEntry[]): string {
 		.map((r, i) => `    ${JSON.stringify(r.pattern)}: ({ params }) => ${wrap('Modal', r, i)},`)
 		.join('\n');
 
-	return `import { lazy, createElement, Suspense } from 'react';
-import { SwitchRoute, Router, useRouter } from 'react-pragmatic-router';
+	return `import { lazy, createElement } from 'react';
+import { SwitchRoute, Router, useRouter, patternMatcher } from 'react-pragmatic-router';
 
 ${layoutImports}
 ${pageImports}
@@ -156,6 +158,23 @@ ${modalImports}
 
 export const routes = ${JSON.stringify(pages.map((r) => r.pattern))};
 export const modalRoutes = ${JSON.stringify(modals.map((r) => r.pattern))};
+
+export function useMatchedRoute() {
+  const { location, backgroundLocation } = useRouter();
+  const effective = backgroundLocation || location;
+  for (const pattern of routes) {
+    if (patternMatcher(pattern, effective, true)) return pattern;
+  }
+  return null;
+}
+
+export function useMatchedModal() {
+  const { location } = useRouter();
+  for (const pattern of modalRoutes) {
+    if (patternMatcher(pattern, location, true)) return pattern;
+  }
+  return null;
+}
 
 export function Routes() {
   const { location, setLocation, backgroundLocation } = useRouter();
@@ -172,12 +191,12 @@ ${pageEntries}
 }
 
 export function ModalRoutes() {
-  return createElement(Suspense, { fallback: null }, createElement(SwitchRoute, {
+  return createElement(SwitchRoute, {
     exact: true,
     patterns: {
 ${modalEntries}
     },
-  }));
+  });
 }
 `;
 }
