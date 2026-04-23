@@ -1,9 +1,18 @@
 {
 	"name": "react-pragmatic-router",
-	"version": "19.0.0",
+	"version": "19.1.0",
 	"description": "A simple react router for lazy people, without all the added complexity of react-router and the likes.",
-	"keywords": ["react", "router", "route", "link", "vite", "file-based-routing"],
-	"files": ["dist"],
+	"keywords": [
+		"react",
+		"router",
+		"route",
+		"link",
+		"vite",
+		"file-based-routing"
+	],
+	"files": [
+		"dist"
+	],
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"exports": {
