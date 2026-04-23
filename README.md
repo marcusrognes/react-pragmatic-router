@@ -281,7 +281,7 @@ Why this works:
 
 - Layout keys are stable per layout file (`layout:0`, `layout:1`, …). An `AnimatePresence` inside `routes/_layout.tsx` sees its child key stay the same when you navigate between `/users` and `/users/42` (both wrap a `layout:1` element at that slot), so the root layout does **not** re-animate.
 - The inner `routes/users/_layout.tsx` gets a keyed leaf as its child, so `/users` → `/users/new` triggers an exit/enter inside that layout only.
-- `/users/42` → `/users/43` matches the same `/users/:id` pattern and keeps the same leaf key — no animation, just a prop update. Use `useRouter().location` instead of the matched pattern if you want per-URL transitions.
+- `/users/42` → `/users/43` animates too: the leaf is keyed by the resolved pathname (not the pattern), so dynamic-param siblings swap cleanly. Revisiting the same URL keeps the key stable, so it won't re-animate unnecessarily.
 
 See [`examples/vite-advanced`](./examples/vite-advanced) for a complete setup demonstrating layouts, groups, dynamic params and catch-all routes.
 

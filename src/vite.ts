@@ -9,7 +9,7 @@ export interface ReactPragmaticRouterPluginOptions {
 export interface ReactPragmaticRouterPlugin {
 	name: 'react-pragmatic-router';
 	enforce: 'pre';
-	configResolved: (config: { root: string }) => void;
+	configResolved: (config: { root: string; command: 'serve' | 'build' }) => void;
 	configureServer: (server: any) => void;
 	resolveId: (id: string) => string | null;
 	load: (id: string) => string | null;
@@ -110,7 +110,7 @@ function sortRoutes(routes: RouteEntry[]): RouteEntry[] {
 	});
 }
 
-function generateModule(pages: RouteEntry[], modals: RouteEntry[]): string {
+function generateModule(pages: RouteEntry[], modals: RouteEntry[], isDev: boolean): string {
 	const layoutIds = new Map<string, number>();
 	for (const r of [...pages, ...modals]) {
 		for (const l of r.layouts) {
@@ -118,21 +118,25 @@ function generateModule(pages: RouteEntry[], modals: RouteEntry[]): string {
 		}
 	}
 
+	const mkImport = (name: string, file: string) =>
+		isDev
+			? `import ${name} from ${JSON.stringify(file)};`
+			: `const ${name} = lazy(() => import(${JSON.stringify(file)}));`;
+
 	const layoutImports = [...layoutIds.entries()]
-		.map(([file, id]) => `const Layout${id} = lazy(() => import(${JSON.stringify(file)}));`)
+		.map(([file, id]) => mkImport(`Layout${id}`, file))
 		.join('\n');
 
 	const pageImports = pages
-		.map((r, i) => `const Page${i} = lazy(() => import(${JSON.stringify(r.file)}));`)
+		.map((r, i) => mkImport(`Page${i}`, r.file))
 		.join('\n');
 
 	const modalImports = modals
-		.map((r, i) => `const Modal${i} = lazy(() => import(${JSON.stringify(r.file)}));`)
+		.map((r, i) => mkImport(`Modal${i}`, r.file))
 		.join('\n');
 
 	function wrap(kind: 'Page' | 'Modal', r: RouteEntry, i: number): string {
-		const leafKey = JSON.stringify(r.pattern);
-		let expr = `createElement(${kind}${i}, { params, key: ${leafKey} })`;
+		let expr = `createElement(${kind}${i}, { params, key: path })`;
 		for (let j = r.layouts.length - 1; j >= 0; j--) {
 			const id = layoutIds.get(r.layouts[j])!;
 			const layoutKey = JSON.stringify(`layout:${id}`);
@@ -142,14 +146,15 @@ function generateModule(pages: RouteEntry[], modals: RouteEntry[]): string {
 	}
 
 	const pageEntries = pages
-		.map((r, i) => `    ${JSON.stringify(r.pattern)}: ({ params }) => ${wrap('Page', r, i)},`)
+		.map((r, i) => `    ${JSON.stringify(r.pattern)}: ({ params, path }) => ${wrap('Page', r, i)},`)
 		.join('\n');
 
 	const modalEntries = modals
-		.map((r, i) => `    ${JSON.stringify(r.pattern)}: ({ params }) => ${wrap('Modal', r, i)},`)
+		.map((r, i) => `    ${JSON.stringify(r.pattern)}: ({ params, path }) => ${wrap('Modal', r, i)},`)
 		.join('\n');
 
-	return `import { lazy, createElement } from 'react';
+	const reactImports = isDev ? 'createElement' : 'lazy, createElement';
+	return `import { ${reactImports} } from 'react';
 import { SwitchRoute, Router, useRouter, patternMatcher } from 'react-pragmatic-router';
 
 ${layoutImports}
@@ -206,17 +211,40 @@ export function reactPragmaticRouterPlugin(
 ): ReactPragmaticRouterPlugin {
 	const extensions = options.extensions ?? ['.tsx', '.ts', '.jsx', '.js'];
 	let routesDir = '';
+	let isDev = false;
 	let server: any = null;
+	let lastFingerprint: string | null = null;
+	let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-	function invalidate(file: string) {
+	function fingerprint(): string {
+		const { pages, modals } = walk(routesDir, extensions);
+		const layouts = [
+			...new Set([...pages, ...modals].flatMap((r) => r.layouts)),
+		].sort();
+		return JSON.stringify({
+			p: pages.map((r) => r.file).sort(),
+			m: modals.map((r) => r.file).sort(),
+			l: layouts,
+		});
+	}
+
+	function scheduleInvalidate(file: string) {
 		if (!server) return;
 		if (!file.startsWith(routesDir)) return;
 
-		const mod = server.moduleGraph.getModuleById(RESOLVED_VIRTUAL_ID);
-		if (mod) {
-			server.moduleGraph.invalidateModule(mod);
-			server.ws.send({ type: 'full-reload' });
-		}
+		if (debounceTimer) clearTimeout(debounceTimer);
+		debounceTimer = setTimeout(() => {
+			debounceTimer = null;
+			const fp = fingerprint();
+			if (fp === lastFingerprint) return;
+			lastFingerprint = fp;
+
+			const mod = server.moduleGraph.getModuleById(RESOLVED_VIRTUAL_ID);
+			if (mod) {
+				server.moduleGraph.invalidateModule(mod);
+				server.ws.send({ type: 'full-reload' });
+			}
+		}, 50);
 	}
 
 	return {
@@ -225,15 +253,16 @@ export function reactPragmaticRouterPlugin(
 
 		configResolved(config) {
 			routesDir = path.resolve(config.root, options.path);
+			isDev = config.command === 'serve';
 		},
 
 		configureServer(_server) {
 			server = _server;
 			const watcher = _server.watcher;
 			watcher.add(routesDir);
-			watcher.on('add', invalidate);
-			watcher.on('unlink', invalidate);
-			watcher.on('change', invalidate);
+			lastFingerprint = fingerprint();
+			watcher.on('add', scheduleInvalidate);
+			watcher.on('unlink', scheduleInvalidate);
 		},
 
 		resolveId(id) {
@@ -244,7 +273,7 @@ export function reactPragmaticRouterPlugin(
 		load(id) {
 			if (id !== RESOLVED_VIRTUAL_ID) return null;
 			const { pages, modals } = walk(routesDir, extensions);
-			return generateModule(sortRoutes(pages), sortRoutes(modals));
+			return generateModule(sortRoutes(pages), sortRoutes(modals), isDev);
 		},
 	};
 }

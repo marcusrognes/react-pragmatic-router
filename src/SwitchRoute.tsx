@@ -4,10 +4,11 @@ import { patternMatcher } from './utils';
 import { ParamsType } from './Route';
 
 export function SwitchRoute(props: {
-	patterns: { [pattern: string]: ({ params }: { params: ParamsType }) => ReactNode },
+	patterns: { [pattern: string]: (args: { params: ParamsType, path: string }) => ReactNode },
 	exact?: boolean,
 }) {
 	const { location } = useRouter();
+	const pathname = location.split('?')[0];
 	let patterns = Object.keys(props.patterns);
 	let matches: RegExpMatchArray | null = null;
 	let matchingPattern: string | null = null;
@@ -27,6 +28,6 @@ export function SwitchRoute(props: {
 	return useMemo(() => {
 		if(!matches || !matchingPattern) return null;
 
-		return props.patterns[matchingPattern]({params: matches.groups || {}});
-	}, [JSON.stringify(matches?.groups || {}), !!matches, matchingPattern]);
+		return props.patterns[matchingPattern]({params: matches.groups || {}, path: pathname});
+	}, [JSON.stringify(matches?.groups || {}), !!matches, matchingPattern, pathname]);
 }
