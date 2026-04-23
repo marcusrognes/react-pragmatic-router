@@ -108,6 +108,27 @@ function Page(props: { someParam: string }) {
 }
 ```
 
+## Search params:
+
+`useRouter().location` includes the query string, and a query-only navigation (e.g. `/users/42` → `/users/42?tab=activity`) re-renders every component that reads the router context. `useSearchParams()` is a small convenience that returns a `URLSearchParams` keyed off the current location:
+
+```tsx
+import { Link, useSearchParams } from 'react-pragmatic-router';
+
+function UserDetail({ params }: { params: { id: string } }) {
+	const search = useSearchParams();
+	const tab = search.get('tab') ?? 'profile';
+
+	return <div>
+		<Link href={`/users/${params.id}`}>Profile</Link>
+		<Link href={`/users/${params.id}?tab=activity`}>Activity</Link>
+		<p>Current tab: {tab}</p>
+	</div>;
+}
+```
+
+Route params from `patternMatcher` always come from the pathname; the query is never merged into them.
+
 ## Vite plugin (file-based routing):
 
 Add the plugin to `vite.config.ts`:

@@ -1,4 +1,5 @@
 export function patternMatcher(pattern: string, path: string, exact?: boolean) {
+	const pathname = path.split('?')[0];
 	const paramProps = new RegExp(':[^\/]+', 'g');
 	const catchAllProps = new RegExp('\\*[^\\/]+', 'g');
 	const paramMatches = [...pattern.matchAll(paramProps)];
@@ -19,5 +20,5 @@ export function patternMatcher(pattern: string, path: string, exact?: boolean) {
 	}
 
 	const routeRegex = new RegExp(regexString);
-	return path.match(routeRegex);
+	return pathname.match(routeRegex);
 }

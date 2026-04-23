@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext } from 'react';
+import { createContext, ReactNode, useContext, useMemo } from 'react';
 
 
 export interface SetLocationProps {
@@ -16,6 +16,12 @@ export const RouterProvider = createContext({
 
 export function useRouter() {
 	return useContext(RouterProvider);
+}
+
+export function useSearchParams(): URLSearchParams {
+	const { location } = useRouter();
+	const search = location.split('?')[1] ?? '';
+	return useMemo(() => new URLSearchParams(search), [search]);
 }
 
 export function Router(props: {
